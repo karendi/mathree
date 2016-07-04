@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#map { 
+
+       
+        height: 700px;
+      }
+
+</style>
+<meta name= "viewport" content= "width=device-width,initial-scale=1" >
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<script src=""></script>
+
+ 
+<div id = "maparea">
+Location:<input type="text" name= "Location" id="Location">
+<br><br>
+Destination:<input type="text" name="Destination" id="Destination">
+<br><br>
+<input type="radio" id = "morningprice" class="radio" value="Morning_Price">Morning<br><br>
+<input type="radio" id="afternoonprice" class ="radio"value="Afternoon_Price">Afternoon<br><br>
+<input type = "radio" id="eveningprice" class="radio" value="Evening_Price">Evening<br><br>
+<button id="route">OK</button><br><br>
+<div id="firstdata"></div><br><br>
+<button id="direction">GET DIRECTIONS?</button>
+</div>
+<div id="map"></div>
+
+   
+<script>
+
+$(document).ready(function(){ 
+ $("button#direction").hide();
+$("#route").click(function(){
+   var loc =$("input#Location").val();
+   var dest = $("input#Destination").val();
+   
+   //trim removes all the white spaces and check if the text boxes are empty
+    if(($.trim(loc)) && ($.trim(dest)) != "")
+	{
+	  $.post('fares.php',{loc: loc , dest: dest},/*this is a json string-> name:alex*/
+              function(data){
+			      var test = data;
+                if(test.indexOf("Error"))//hahahaha wrong code but its working lol.test which is the correct data from the errors
+				{
+				  
+				//parsing the text into JSON data
+			      $.each(JSON.parse(test),function(key,value) //iterate through the data and display the data
+				  {
+				  var information = (key + ':' +value +'<br><br>');
+				  $("#firstdata").append(information);
+
+				  $("button#direction").show();
+				  $("button#direction").click(function (){
+				  //clear the page for the map
+				   $("div#maparea").empty();
+				  
+				    //parsing the data again in order to use it for the map
+					var map2 = test;
+					var mapdata = JSON.parse(map2);
+				    $.each(mapdata,function(){
+				    
+					
+					var sacco = mapdata.Sacco_name;
+					var lati = mapdata.lat;
+					var longi = mapdata.lng;
+					var marker1 = 
+					{
+					lat: lati,
+					lng: longi
+					
+					
+					};
+				
+					//get the users location
+					if(navigator.geolocation)
+					{
+					
+					navigator.geolocation.getCurrentPosition( function(position){
+					var pos = 
+					{
+					lat: position.coords.latitude,
+					lng: position.coords.longitude
+					};
+					var accuracy = position.coords.accuracy;
+					var directionsService = new google.maps.DirectionsService();
+                    var directionsDisplay = new google.maps.DirectionsRenderer();
+					//new google map
+					var map = new google.maps.Map(document.getElementById('map'),{
+					zoom:10,
+					center:new google.maps.LatLng(pos),
+					mapTypeId: google.maps.MapTypeId.ROADMAP
+					});
+					directionsDisplay.setMap(map);
+					 //var infoWindow = new google.maps.InfoWindow({map: map});
+					
+					//setting the marker for the users location
+					var marker2 = new google.maps.Marker({
+					position: new google.maps.LatLng(pos),
+					map:map,
+					title:("Your location"),
+					
+					});
+					/*infowindow = infoWindow.setPosition(pos);
+				    infoWindow = infoWindow.setContent('Location found.');*/
+					
+					//set the markers for the sacco
+					var infowindow = new google.maps.InfoWindow();
+					var marker = new google.maps.Marker({
+					position:  new google.maps.LatLng(marker1),
+					map:map,
+					title:(sacco)
+					});//end of the marker function 
+					//on click event listener on the marker
+					google.maps.event.addListener(marker, 'click',function(){
+					var request = {					
+					origin:pos,
+					destination: marker1,
+					travelMode: google.maps.TravelMode.WALKING
+					};
+					directionsService.route( request, function(response,status) {
+					if(status == google.maps.DirectionsStatus.OK){
+					directionsDisplay.setDirections(response);
+				       }//end of the response for the route in the if statement
+					
+					
+					
+					
+	
+					
+					});}//end to the routing service 
+					);//end to the event listener on the marker
+					
+				
+					
+					
+
+					},
+					function error(msg)
+					{
+					alert('Please enable your GPS position.');
+					},
+					{maximumAge:600000, timeout:5000, enableHighAccuracy: true}
+					);
+						
+					
+					
+					}//end of getting the users location
+					else
+					
+					{
+					alert("Your browser doesn't support geolocation");
+					
+					}//end of the function that finds the error if geolocation is not supported
+					
+			
+					
+				  });//end of $.each which is supposed to iterate through all the saccos returned
+				
+				  });//end of event listener to the second button
+				 
+					});	//end of the first $.each function
+
+
+                $("body").append("<button>GO BACK</button>");
+                $("button").click(function(){
+				
+				$(this).data('clicked',true);
+				
+				if($("button").data('clicked'))	
+				{
+				
+				location.reload();
+				
+				
+				}
+				
+				
+				
+				});
+                			
+				
+				} 
+				else	
+				{		  
+			  
+			  			   
+			    $("div").append(data);
+			 
+			    }
+			  
+			   
+
+				
+			
+			     
+
+				 
+				 
+		$("#route").click(function(){
+		
+		$("div").empty();
+		$("button#direction").hide();
+		//empty the divs when the button is clicked again and hide the direction button 
+		
+		
+		
+		
+		});
+		
+		
+	
+	
+	});}
+	else 
+	{
+	alert("You cant leave the fields empty!");
+	
+	}
+	 
+   
+   
+   
+   
+   
+});
+
+
+
+});
+
+
+
+</script>
+<script async defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBSa_2h3iQsX-qd-ToclBsAat1svY4p0_o&callback">
+</script>
+
+
+
+
+
+
+</html>

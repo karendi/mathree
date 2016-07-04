@@ -1,0 +1,79 @@
+<?php
+require ("getlocation2.php");
+//var_dump($_POST);
+//connection
+
+$conn = mysqli_connect($server,$username,$password,$database);
+if(!$conn){
+	die("Connection Failed;" .mysqli_connect_error() );
+}
+
+// Start XML file, create parent node
+$dom = new DOMDocument("1.0");
+$node = $dom->createElement("markers");
+$parnode = $dom->appendChild($node);
+
+if(isset($_POST['submit'])){
+	
+	$location=($_POST ['location']);
+	$destination=($_POST['destination']);
+	
+	$xml='<?xml version="1.0" encoding="UTF-8"?>';
+	
+	
+$stmt=$conn->prepare(' SELECT a.Location , a.Destination , b.prices , c.Sacco_Name , d.lat , d.lng
+FROM maintable a
+INNER JOIN prices b ON a.price_ID=b.price_ID 
+INNER JOIN saccos c ON c.Sacco_ID=a.Sacco_ID
+INNER JOIN markers d ON c.Sacco_ID=d.Sacco_ID
+WHERE a.Location = ? AND a.Destination = ? 
+ORDER BY b.prices ASC ');
+
+			
+		
+$stmt->bind_param('ss',$location, $destination);
+			
+if($stmt->execute()) 
+{		
+           $result= $stmt->get_result();
+		   
+         header("Content-type: text/xml");
+		   
+	while($row = $result->fetch_array(MYSQLI_ASSOC)){
+		
+		$node=$dom->createElement("marker");
+		$newnode=$parnode->appendChild($node);
+		$newnode->setAttribute("Location", $row['Location']);
+		$newnode->setAttribute("Destination", $row['Destination']);
+		$newnode->setAttribute("Price", $row['prices']);
+		$newnode->setAttribute("name", $row['Sacco_Name']);
+		$newnode->setAttribute("latitude", $row['lat']);
+		$newnode->setAttribute("longitude", $row['lng']);	
+		 
+	     }
+		 
+		 echo $dom->saveXML();
+		 
+		 
+		  
+
+		
+		 
+		
+		 
+		
+			
+}
+ else 
+ {	error_log ("There was a problem executing the query");
+		
+
+ }			
+			
+				
+}
+
+$conn->close();
+
+?>
+

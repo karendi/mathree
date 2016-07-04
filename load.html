@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+
+</head>
+
+  Location:<br>
+  <input type="text" id="location"><br>
+  Destination:<br>
+  <input type="text" id="destination" ><br><br>
+  <p>Please choose the time of travel..</p><br><br>
+  
+<input type="radio" id = "morningprice" class="radio" value="Morning_Price">Morning<br><br>
+<input type="radio" id="afternoonprice" class ="radio"value="Afternoon_Price">Afternoon<br><br>
+<input type = "radio" id="eveningprice" class="radio" value="Evening_Price">Evening<br><br>
+  <button id="getroute">OK</button><br><br>
+  <button id="directions">Get directions</button><br><br>
+ 
+
+<script>
+
+$(document).ready(function(){
+$("button#directions").hide();
+$("button#getroute").click(function(){
+var loc = $("input#location").val();
+var dest = $("input#destination").val();
+
+ if(($.trim(loc)) && ($.trim(dest)) != ""){
+if($("input[type='radio'].radio").is(':checked'))
+{
+
+var time= $("input[type='radio'].radio:checked").val();
+$.post('trial.php',{loc: loc, dest: dest, time:time},function(data){
+
+var test = data;
+var phpdata = [];
+
+if((test.indexOf("Error")))
+{
+var data2 = JSON.parse(test);
+var i = 0, datasize = data2.length ;
+var saccos = [];
+for(i; i < datasize; i++)
+{
+
+saccos.push(data2[i].Sacco);
+var markers = "Sacco:" + data2[i].Sacco + '<br>' + "Morning Price:"+ data2[i].Morning_Price + '<br>'+"Vehicle:"+ data2[i].Vehicle ;
+var div = $("body").append('<div id="div'+ i + '"></div><br><br>');
+div.append(markers);
+
+
+
+
+}//end of the first for loop
+
+$("button#directions").show();
+
+$("button#directions").click(function(){
+var data3 = JSON.parse(test); //parse the data received again
+var k = 0, length = data3.length ;
+
+
+for(k; k < length ; k++)
+{ 
+
+//iterate through the data merging the arrays with similar sacco names 
+if(data3[k].Sacco == data3[k+1].Sacco) //error:but working,cannot read property of k+1(undefined)
+{
+
+var results = $.merge(data3[k], data3[k+1]);
+phpdata.push(results.Sacco); 
+var p = $("body").append("<p></p>");
+p.append(phpdata);
+} //end of if statement that's supposed to merge the sacco names
+
+
+}//end of for 2nd loop
+
+
+
+$.post("trial3.php",{ phpdata : phpdata},function(data)
+{
+
+}); //end of the second $.post ajax call
+
+}); //end of the second event listener
+
+
+}//end of actual data 
+
+else
+{
+
+$("div").append(data);
+
+
+}
+
+
+});
+ // end of the first ajax call
+
+
+}
+else
+{
+
+alert("You have to check the time of travel");
+
+}
+
+}
+else
+{
+
+alert("You cant leave the fields empty");
+$("input#location").focus();
+$("input#location").focus();
+
+}
+
+
+});
+
+
+});
+
+
+
+
+
+</script>
+
+
+
+
+
+</html>

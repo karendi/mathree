@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+</head>
+<body>
+
+Location:<input type="text" name= "Location" id="Location">
+<br><br>
+Destination:<input type="text" name="Destination" id="Destination">
+<br><br>
+<button id="route">OK</button><br><br>
+
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+
+
+
+$("button#route").click(function(){
+var location = $("input#Location").val();
+var destination = $("input#Destination").val();
+$("[type=]")
+var p = $("body").append("<div></div>");
+p.append(location + destination);
+
+
+$("button#route").click(function(){
+
+p.empty();
+
+});
+
+
+});
+
+});
+
+
+
+
+
+//create a function to iterate through the data giving you variables that you will use to display the map
+				 function maps(){ //creating a nested function?
+					var result = data2;
+					var Location = result.Location;
+					var Destination = result.Destination;
+					var Price = result.prices;
+					var Sacco = result.Sacco_name;
+					var Latitude = result.lat;
+                    var Longitude = result.lng;
+
+                    }
+					$.each(data,maps());
+
+                    
+
+                  $("#directions").html('<img src="btn-ajax-loader.gif" /> &nbsp; Loading Map...');
+			      setTimeout('window.location.href="stylesheet.html?data2="+data;', 100 );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</html>
